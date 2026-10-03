@@ -9,6 +9,6 @@
   While these two are empty, the website simply shows its built-in content.
 */
 window.SPRINGS_DB = {
-    url: "",
-    key: ""
+    url: "https://skyeiazeymbjdclmwbmq.supabase.co",
+    key: "sb_publishable_1UqPpbML1qAADxKAa19FYA_6uF9yOlC"
 };
