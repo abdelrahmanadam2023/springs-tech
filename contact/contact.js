@@ -1,12 +1,11 @@
 /*
   Contact form
 
-  By default the form opens the visitor's email app with the message
-  pre-filled (sent to info@springs-tech.com). This needs no server.
-
-  To receive messages directly without opening an email app:
-  1. Create a free form at https://formspree.io
-  2. Paste its URL below, e.g. "https://formspree.io/f/xxxxxxxx"
+  How messages are sent (first one that is set up wins):
+  1. Database: if Data/config.js has your Supabase URL and key, the message
+     is saved in the "contact_messages" table.
+  2. Formspree: paste a form URL below (https://formspree.io/f/xxxxxxxx).
+  3. Otherwise the visitor's email app opens with the message pre-filled.
 */
 
 const FORM_ENDPOINT = "";
@@ -60,7 +59,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const button = form.querySelector(".submit-button");
 
-        // Option 1: send to a form service
+        // Option 1: save in the database
+        if (window.SpringsDB && SpringsDB.enabled) {
+
+            button.disabled = true;
+
+            try {
+                await SpringsDB.insert("contact_messages", {
+                    name: String(data.get("name")).trim(),
+                    company: String(data.get("company") || "").trim() || null,
+                    email: String(data.get("email")).trim(),
+                    phone: String(data.get("phone") || "").trim() || null,
+                    topic: String(data.get("topic") || ""),
+                    message: String(data.get("message")).trim()
+                });
+
+                form.reset();
+                setStatus("Message sent. We'll get back to you soon.", "success");
+
+            } catch (error) {
+                setStatus("Message not sent. Please try again or email " + CONTACT_EMAIL + ".", "error");
+            } finally {
+                button.disabled = false;
+            }
+
+            return;
+        }
+
+        // Option 2: send to a form service
         if (FORM_ENDPOINT) {
 
             button.disabled = true;
@@ -86,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Option 2: open the visitor's email app
+        // Option 3: open the visitor's email app
         const subject = "Website inquiry: " + data.get("topic");
 
         const body =
